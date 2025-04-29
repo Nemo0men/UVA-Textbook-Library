@@ -191,12 +191,6 @@ python manage.py test
 - Role-based access control
 - Protected API endpoints
 
-## Contributions
-- Haolin: Testing Manager
-- Alden: Requirements Manger
-- Nehemiah: Scrum Master
-- Jayden: DevOps
-
 
 
 
