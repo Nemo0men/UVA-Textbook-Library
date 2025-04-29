@@ -1,0 +1,127 @@
+{% extends 'library/base.html' %}
+
+{% block title %}My Rentals{% endblock %}
+
+{% block content %}
+<h1>My Rentals</h1>
+
+<div class="card">
+    <div class="rental-section">
+        <h2 style="color: var(--dark-color); margin-bottom: 1.5rem;">Pending Requests</h2>
+        {% if pending_rentals %}
+            <ul class="rental-list" style="list-style: none; padding: 0;">
+                {% for rental in pending_rentals %}
+                    <li class="rental-item" style="border: 1px solid #eee; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; background: white;">
+                        <div class="rental-info">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div>
+                                    <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">{{ rental.book.title }}</h3>
+                                    <p style="color: var(--text-light); margin-bottom: 0.5rem;">by {{ rental.book.author }}</p>
+                                </div>
+                                <span class="rental-status pending" style="background-color: #fff3e0; color: #f57c00; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.9rem;">
+                                    Pending Approval
+                                </span>
+                            </div>
+                            <div class="rental-details" style="margin-top: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                <div>
+                                    <p style="color: var(--text-light);">Duration: {{ rental.book.rental_duration_days }} minutes</p>
+                                    <p style="color: var(--text-light);">Price: ${{ rental.book.rental_price }}</p>
+                                </div>
+                                <div>
+                                    <p style="color: var(--text-light);">Requested on: {{ rental.start_date|date:"F j, Y, g:i a" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="empty-state" style="text-align: center; padding: 2rem;">
+                <p style="color: var(--text-light);">No pending rental requests.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="rental-section" style="margin-top: 2rem;">
+        <h2 style="color: var(--dark-color); margin-bottom: 1.5rem;">Active Rentals</h2>
+        {% if active_rentals %}
+            <ul class="rental-list" style="list-style: none; padding: 0;">
+                {% for rental in active_rentals %}
+                    <li class="rental-item" style="border: 1px solid #eee; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; background: white;">
+                        <div class="rental-info">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div>
+                                    <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">{{ rental.book.title }}</h3>
+                                    <p style="color: var(--text-light); margin-bottom: 0.5rem;">by {{ rental.book.author }}</p>
+                                </div>
+                                <span class="rental-status active" style="background-color: #e3fcef; color: #0e9f6e; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.9rem;">
+                                    Active
+                                </span>
+                            </div>
+                            <div class="rental-details" style="margin-top: 1rem;">
+                                <p class="rental-time {% if rental.days_remaining < 5 %}rental-warning{% else %}rental-normal{% endif %}">
+                                    {% if rental.days_remaining == 0 %}
+                                        Expires now
+                                    {% else %}
+                                        {{ rental.days_remaining }} minutes remaining
+                                    {% endif %}
+                                </p>
+                                <p style="color: var(--text-light);">Expires: {{ rental.end_date|date:"F j, Y, g:i a" }}</p>
+                            </div>
+                            <div class="rental-actions" style="margin-top: 1rem;">
+                                <a href="{% url 'book_detail' rental.book.id %}" class="btn btn-outline">View Book</a>
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="empty-state" style="text-align: center; padding: 2rem;">
+                <p style="color: var(--text-light);">No active rentals.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="rental-section" style="margin-top: 2rem;">
+        <h2 style="color: var(--dark-color); margin-bottom: 1.5rem;">Past Rentals</h2>
+        {% if expired_rentals %}
+            <ul class="rental-list" style="list-style: none; padding: 0;">
+                {% for rental in expired_rentals %}
+                    <li class="rental-item" style="border: 1px solid #eee; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; background: white;">
+                        <div class="rental-info">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div>
+                                    <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">{{ rental.book.title }}</h3>
+                                    <p style="color: var(--text-light); margin-bottom: 0.5rem;">by {{ rental.book.author }}</p>
+                                </div>
+                                <span class="rental-status {% if rental.status == 'expired' %}status-expired{% elif rental.status == 'cancelled' %}status-cancelled{% elif rental.status == 'rejected' %}status-rejected{% endif %}">
+                                    {{ rental.get_status_display }}
+                                </span>
+                            </div>
+                            <div class="rental-details" style="margin-top: 1rem;">
+                                <p style="color: var(--text-light);">Ended: {{ rental.end_date|date:"F j, Y, g:i a" }}</p>
+                            </div>
+                            <div class="rental-actions" style="margin-top: 1rem;">
+                                <a href="{% url 'rent_book' rental.book.id %}" class="btn btn-primary">Rent Again</a>
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="empty-state" style="text-align: center; padding: 2rem;">
+                <p style="color: var(--text-light);">No past rentals.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if not pending_rentals and not active_rentals and not expired_rentals %}
+        <div class="empty-state" style="text-align: center; padding: 3rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">📚</div>
+            <h3 style="color: var(--dark-color); margin-bottom: 1rem;">No Rentals Yet</h3>
+            <p style="color: var(--text-light); margin-bottom: 1.5rem;">Start exploring our collection to find books you'd like to rent.</p>
+            <a href="{% url 'explore_library' %}" class="btn btn-primary">Browse Books</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

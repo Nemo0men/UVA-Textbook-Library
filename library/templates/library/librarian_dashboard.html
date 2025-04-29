@@ -1,0 +1,115 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Librarian Dashboard{% endblock %}
+
+{% block content %}
+<h1>Librarian Dashboard</h1>
+
+<div class="dashboard-grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+    <div class="card">
+        <h2 class="card-title">Add New Book</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" id="title" name="title" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="author">Author</label>
+                <input type="text" id="author" name="author" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="isbn">ISBN</label>
+                <input type="text" id="isbn" name="isbn" class="form-control" required placeholder="Enter 13-digit ISBN">
+                <small style="display: block; margin-top: 0.5rem; color: var(--text-light);">Required: Enter the book's 13-digit ISBN</small>
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" class="form-control" rows="3" placeholder="Enter book description"></textarea>
+                <small style="display: block; margin-top: 0.5rem; color: var(--text-light);">Provide a brief description of the book</small>
+            </div>
+            <div class="form-group">
+                <label for="cover_image">Cover Image</label>
+                <input type="file" id="cover_image" name="cover_image" class="form-control" accept="image/*">
+                <small style="display: block; margin-top: 0.5rem; color: var(--text-light);">Recommended size: 400x600px</small>
+            </div>
+            <div class="form-group">
+                <label for="pdf_file">PDF File</label>
+                <input type="file" id="pdf_file" name="pdf_file" class="form-control" accept="application/pdf">
+                <small style="display: block; margin-top: 0.5rem; color: var(--text-light);">Upload the book's PDF file</small>
+            </div>
+            <div class="form-group">
+                <label for="rental_price">Rental Price ($)</label>
+                <input type="number" id="rental_price" name="rental_price" class="form-control" step="0.01" min="0" value="9.99" required>
+            </div>
+            <div class="form-group">
+                <label for="rental_duration_days">Rental Duration (minutes)</label>
+                <input type="number" id="rental_duration_days" name="rental_duration_days" class="form-control" min="1" value="30" required>
+            </div>
+            <div class="form-group">
+                <label for="condition">Book Condition</label>
+                <select id="condition" name="condition" class="form-control" required>
+                    <option value="new">New</option>
+                    <option value="excellent">Excellent</option>
+                    <option value="good" selected>Good</option>
+                    <option value="fair">Fair</option>
+                    <option value="poor">Poor</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Add Book</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2 class="card-title">Manage Library Collection</h2>
+        
+        {% if books %}
+        <ul class="book-list" style="display: flex; flex-direction: column; gap: 1rem;">
+            {% for book in books %}
+            <li class="book-item" style="flex-direction: row; align-items: center; padding: 1rem; justify-content: space-between; width: 100%; margin-bottom: 0.5rem; border-bottom: 1px solid #eee;">
+                <div class="book-info" style="flex-direction: row; align-items: center; flex: 1;">
+                    {% if book.cover_image %}
+                    <img src="{{ book.cover_image.url }}" alt="{{ book.title }} cover" style="width: 60px; height: 90px; object-fit: cover; margin-right: 1rem;">
+                    {% else %}
+                    <div style="width: 60px; height: 90px; background-color: #e9ecef; display: flex; align-items: center; justify-content: center; margin-right: 1rem;">
+                        <span style="font-size: 1.5rem; color: #adb5bd;">📖</span>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <span class="book-title">{{ book.title }}</span>
+                        <span class="book-author">by {{ book.author }}</span>
+                        {% if book.description %}
+                        <p class="book-description" style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-light);">
+                            {{ book.description|truncatechars:150 }}
+                        </p>
+                        {% endif %}
+                        <div style="margin-top: 0.25rem; font-size: 0.9rem;">
+                            <span>${{ book.rental_price }} for {{ book.rental_duration_days }} minutes</span>
+                            <span class="condition-badge {{ book.condition }}">
+                                {{ book.get_condition_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="book-actions" style="display: flex; align-items: center; gap: 0.5rem; margin-left: 1rem;">
+                    <a href="{% url 'edit_book' book.id %}" class="btn btn-outline">Edit</a>
+                    <form method="post" style="display: inline; margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="book_id" value="{{ book.id }}">
+                        <input type="hidden" name="delete_book" value="true">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this book?')">Delete</button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state" style="text-align: center; padding: 3rem 1rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">📚</div>
+            <h3>No books in the library yet</h3>
+            <p>Start adding books using the form on the left.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

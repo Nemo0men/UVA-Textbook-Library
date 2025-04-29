@@ -1,0 +1,100 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+<h1>Manage Users</h1>
+
+<div class="card">
+    <form method="get" class="search-form" style="margin-bottom: 2rem;">
+        <div style="display: flex; gap: 1rem;">
+            <input type="text" 
+                   name="q" 
+                   class="form-control" 
+                   placeholder="Search by username..." 
+                   value="{{ search_query }}"
+                   style="flex: 1;">
+            <button type="submit" class="btn btn-primary" style="min-width: 100px;">Search</button>
+            {% if search_query %}
+            <a href="{% url 'manage_users' %}" class="btn btn-outline" style="min-width: 100px;">Clear</a>
+            {% endif %}
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #333; color: var(--text-color);">Username</th>
+                    <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #333; color: var(--text-color);">Email</th>
+                    <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #333; color: var(--text-color);">Current Role</th>
+                    <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #333; color: var(--text-color);">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td style="padding: 1rem; border-bottom: 1px solid #333; color: var(--text-color);">
+                        {{ user.username }}
+                    </td>
+                    <td style="padding: 1rem; border-bottom: 1px solid #333; color: var(--text-color);">
+                        {{ user.email|default:"No email" }}
+                    </td>
+                    <td style="padding: 1rem; border-bottom: 1px solid #333;">
+                        <div class="role-badge {% if user.profile.role == 'librarian' %}librarian-badge{% else %}patron-badge{% endif %}" style="
+                            display: inline-block;
+                            padding: 0.25rem 0.75rem;
+                            border-radius: 20px;
+                            font-size: 0.9rem;
+                            color: #ffffff;">
+                            {{ user.profile.get_role_display }}
+                        </div>
+                    </td>
+                    <td style="padding: 1rem; border-bottom: 1px solid #333;">
+                        {% if user != request.user %}
+                            <form method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="user_id" value="{{ user.id }}">
+                                {% if user.profile.role == 'patron' %}
+                                    <input type="hidden" name="action" value="promote">
+                                    <button type="submit" class="btn btn-primary" style="margin: 0;" 
+                                            onclick="return confirm('Are you sure you want to promote {{ user.username }} to librarian?')">
+                                        Promote to Librarian
+                                    </button>
+                                {% else %}
+                                    <input type="hidden" name="action" value="demote">
+                                    <button type="submit" class="btn btn-danger" style="margin: 0;"
+                                            onclick="return confirm('Are you sure you want to demote {{ user.username }} to patron?')">
+                                        Demote to Patron
+                                    </button>
+                                {% endif %}
+                            </form>
+                        {% else %}
+                            <span style="color: var(--text-light);">Cannot modify own role</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if not users %}
+        <div class="empty-state" style="text-align: center; padding: 2rem;">
+            {% if search_query %}
+            <p>No users found matching "{{ search_query }}"</p>
+            {% else %}
+            <p>No users found</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .librarian-badge {
+        background-color: #4a6fa5;
+    }
+    .patron-badge {
+        background-color: #f8b400;
+    }
+</style>
+{% endblock %} 

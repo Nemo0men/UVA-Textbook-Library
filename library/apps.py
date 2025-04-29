@@ -1,0 +1,8 @@
+from django.apps import AppConfig
+
+class LibraryConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'library'
+
+    def ready(self):
+        import library.signals  # Ensure this line is present to connect signals 

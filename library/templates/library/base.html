@@ -1,0 +1,177 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}UVA Textbook Library{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'library/css/style.css' %}">
+    <link rel="icon" href="{% static 'library/images/cs.ico' %}" type="image/x-icon">
+  </head>
+  <body>
+    {% csrf_token %}
+    <div class="notification-container" style="
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+    ">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message" style="display: none;" 
+                     data-message="{{ message }}"
+                     data-type="{{ message.tags }}">
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    <div class="page-wrapper">
+      <header>
+        <nav class="nav-primary" style="position: fixed; top: 0; left: 0; right: 0; height: 60px; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000;">
+            <div class="nav-container" style="display: flex; align-items: center; justify-content: flex-start; max-width: 1200px; margin: 0 auto; padding: 0 0; height: 100%; width: 100%;">
+                <div class="logo" style="flex-shrink: 0; margin: 0; padding: 0;">
+                    <a href="{% url 'home' %}" style="text-decoration: none; color: inherit; padding: 0 1rem;">
+                        <span class="logo-icon">📚</span> UVA Library
+                    </a>
+                </div>
+                <ul class="nav-links" style="display: flex; list-style: none; margin: 0; padding: 0; align-items: center; height: 100%; flex: 1; justify-content: flex-end; gap: 0.5rem;">
+                    {% block nav_toggle %}{% endblock %}
+                    <li style="height: 100%; display: flex; align-items: center; min-width: 100px; justify-content: center;"><a href="{% url 'home' %}" style="color: var(--dark-color); font-weight: 500; text-decoration: none; padding: 0.5rem 0.5rem; height: 100%; display: flex; align-items: center; justify-content: center; width: 100%; text-align: center; font-size: 1rem;">Home</a></li>
+                    <li style="height: 100%; display: flex; align-items: center; min-width: 100px; justify-content: center;"><a href="{% url 'explore_library' %}" style="color: var(--dark-color); font-weight: 500; text-decoration: none; padding: 0.5rem 0.5rem; height: 100%; display: flex; align-items: center; justify-content: center; width: 100%; text-align: center; font-size: 1rem;">Explore</a></li>
+                    <li style="height: 100%; display: flex; align-items: center; min-width: 100px; justify-content: center;"><a href="{% url 'collections' %}" style="color: var(--dark-color); font-weight: 500; text-decoration: none; padding: 0.5rem 0.5rem; height: 100%; display: flex; align-items: center; justify-content: center; width: 100%; text-align: center; font-size: 1rem;">Collections</a></li>
+                    {% if user.is_authenticated %}
+                        {% if user.profile.role == 'patron' %}
+                            <li style="height: 100%; display: flex; align-items: center; min-width: 100px; justify-content: center;"><a href="{% url 'my_library' %}" style="color: var(--dark-color); font-weight: 500; text-decoration: none; padding: 0.5rem 0.5rem; height: 100%; display: flex; align-items: center; justify-content: center; width: 100%; text-align: center; font-size: 1rem;">My Library</a></li>
+                            <li style="height: 100%; display: flex; align-items: center; min-width: 100px; justify-content: center;"><a href="{% url 'my_pending_rentals' %}" style="color: var(--dark-color); font-weight: 500; text-decoration: none; padding: 0.5rem 0.5rem; height: 100%; display: flex; align-items: center; justify-content: center; width: 100%; text-align: center; font-size: 1rem;">My Rentals</a></li>
+                        {% endif %}
+                        {% if user.profile.role == 'librarian' %}
+                            <li style="height: 100%; display: flex; align-items: center; min-width: 100px; justify-content: center;"><a href="{% url 'librarian_dashboard' %}" style="color: var(--dark-color); font-weight: 500; text-decoration: none; padding: 0.5rem 0.5rem; height: 100%; display: flex; align-items: center; justify-content: center; width: 100%; text-align: center; font-size: 1rem;">Dashboard</a></li>
+                            <li style="height: 100%; display: flex; align-items: center; min-width: 100px; justify-content: center;"><a href="{% url 'approve_rentals' %}" style="color: var(--dark-color); font-weight: 500; text-decoration: none; padding: 0.5rem 0.5rem; height: 100%; display: flex; align-items: center; justify-content: center; width: 100%; text-align: center; font-size: 1rem;">Approve Rentals</a></li>
+                            <li style="height: 100%; display: flex; align-items: center; min-width: 100px; justify-content: center;"><a href="{% url 'manage_users' %}" style="color: var(--dark-color); font-weight: 500; text-decoration: none; padding: 0.5rem 0.5rem; height: 100%; display: flex; align-items: center; justify-content: center; width: 100%; text-align: center; font-size: 1rem;">Manage Users</a></li>
+                        {% endif %}
+                        <li style="height: 100%; display: flex; align-items: center; min-width: 100px; justify-content: center;"><a href="{% url 'profile' %}" style="color: var(--dark-color); font-weight: 500; text-decoration: none; padding: 0.5rem 0.5rem; height: 100%; display: flex; align-items: center; justify-content: center; width: 100%; text-align: center; font-size: 1rem;">Profile</a></li>
+                        <li style="height: 100%; display: flex; align-items: center; min-width: 100px; justify-content: center;"><a href="{% url 'account_logout' %}" class="btn btn-outline" style="margin: 0.5rem; height: auto; min-width: 100px; white-space: nowrap; font-size: 1rem;">Log Out</a></li>
+                    {% else %}
+                        <li style="height: 100%; display: flex; align-items: center; min-width: 100px; justify-content: center;"><a href="{% url 'login' %}" class="btn btn-outline" style="margin: 0.5rem; height: auto; min-width: auto; font-size: 1rem;">Login</a></li>
+                        <li style="height: 100%; display: flex; align-items: center; min-width: 100px; justify-content: center;"><a href="{% url 'register' %}" class="btn btn-primary" style="margin: 0.5rem; height: auto; min-width: auto; font-size: 1rem;">Register</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+      </header>
+      
+      <main class="main-content" style="padding-top: 40px;">
+        <div class="container">
+          {% block content %}{% endblock %}
+        </div>
+      </main>
+      
+      <footer>
+        <div class="footer-container">
+          <div>
+              <h3 class="footer-title">UVA Textbook Library</h3>
+              <p class="footer-text">A student-friendly platform designed for UVA students to access, manage, and share textbooks.</p>
+          </div>
+          <div>
+              <h4 class="footer-title">Quick Links</h4>
+              <ul class="footer-links">
+                  <li><a href="{% url 'home' %}">Home</a></li>
+                  <li><a href="{% url 'explore_library' %}">Explore</a></li>
+                  <li><a href="{% url 'my_library' %}">My Library</a></li>
+              </ul>
+          </div>
+          <div>
+              <h4 class="footer-title">Contact</h4>
+              <p class="footer-text">University of Virginia<br>Charlottesville, VA 22904</p>
+              <p class="footer-text">Email: library@virginia.edu</p>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p class="copyright">&copy; {% now "Y" %} UVA Textbook Library. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>
+    {% block extra_js %}{% endblock %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Function to show a notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                background: lightgreen;
+                padding: 8px 16px;
+                border-radius: 4px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                margin-bottom: 8px;
+                pointer-events: auto;
+                transform: translateX(120%);
+                opacity: 0;
+                transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+                font-size: 1.1rem;
+                max-width: 300px;
+                display: flex;
+                align-items: center;
+                border-left: 3px solid;
+            `;
+
+            // Set border color based on type
+            switch(type) {
+                case 'success':
+                    notification.style.borderLeftColor = '#4CAF50';
+                    break;
+                case 'error':
+                    notification.style.borderLeftColor = '#f44336';
+                    break;
+                case 'warning':
+                    notification.style.borderLeftColor = '#ff9800';
+                    break;
+                default:
+                    notification.style.borderLeftColor = '#2196F3';
+            }
+
+            notification.textContent = message;
+            
+            const container = document.querySelector('.notification-container');
+            container.appendChild(notification);
+            
+            // Force reflow and trigger animation
+            notification.offsetHeight;
+            requestAnimationFrame(() => {
+                notification.style.transform = 'translateX(0)';
+                notification.style.opacity = '1';
+            });
+            
+            // Auto-dismiss after 3 seconds
+            setTimeout(() => {
+                notification.style.transform = 'translateX(120%)';
+                notification.style.opacity = '0';
+                // Wait for the animation to complete before removing
+                notification.addEventListener('transitionend', () => {
+                    notification.remove();
+                }, { once: true });
+            }, 3000);
+        }
+
+        // Process all messages with a slight delay to ensure proper animation
+        const messages = document.querySelectorAll('.message');
+        messages.forEach((message, index) => {
+            setTimeout(() => {
+                const text = message.dataset.message;
+                const type = message.dataset.type || 'info';
+                showNotification(text, type);
+                message.remove();
+            }, index * 300); // Increased delay between notifications
+        });
+    });
+    </script>
+  </body>
+</html>

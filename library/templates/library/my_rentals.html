@@ -1,0 +1,70 @@
+{% extends 'library/base.html' %}
+{% load library_extras %}
+
+{% block title %}My Rentals{% endblock %}
+
+{% block content %}
+<h1>My Rentals</h1>
+
+<div class="card">
+    <h2 class="card-title">Active Rentals</h2>
+    {% if active_rentals %}
+    <ul class="book-list" style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for rental in active_rentals %}
+        <li class="book-item" style="flex-direction: row; align-items: center; padding: 1rem;">
+            <div class="book-info" style="flex-direction: row; align-items: center;">
+                {% if rental.book.cover_image %}
+                <img src="{{ rental.book.cover_image.url }}" alt="{{ rental.book.title }} cover" style="width: 60px; height: 90px; object-fit: cover; margin-right: 1rem;">
+                {% else %}
+                <div style="width: 60px; height: 90px; background-color: #e9ecef; display: flex; align-items: center; justify-content: center; margin-right: 1rem;">
+                    <span style="font-size: 1.5rem; color: #adb5bd;">📖</span>
+                </div>
+                {% endif %}
+                <div>
+                    <h3 class="book-title">{{ rental.book.title }}</h3>
+                    <p class="book-author">by {{ rental.book.author }}</p>
+                    <p style="color: {% if rental.days_remaining < 5 %}var(--danger-color){% else %}var(--text-light){% endif %};">
+                        {% if rental.days_remaining == 0 %}
+                            Expires now
+                        {% else %}
+                            {{ rental.days_remaining }} minutes remaining
+                        {% endif %}
+                        (Expires: {{ rental.end_date|date:"F j, Y H:i" }})
+                    </p>
+                </div>
+            </div>
+            <div class="book-actions">
+                <a href="{% url 'book_detail' rental.book.id %}" class="btn btn-outline">View Book</a>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No active rentals.</p>
+    {% endif %}
+</div>
+
+{% if expired_rentals %}
+<div class="card">
+    <h2 class="card-title">Expired Rentals</h2>
+    <ul class="book-list" style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for rental in expired_rentals %}
+        <li class="book-item" style="flex-direction: row; align-items: center; padding: 1rem;">
+            <div class="book-info" style="flex-direction: row; align-items: center;">
+                <div>
+                    <h3 class="book-title">{{ rental.book.title }}</h3>
+                    <p class="book-author">by {{ rental.book.author }}</p>
+                    <p style="color: var(--danger-color);">
+                        Expired: {{ rental.end_date|date:"F j, Y" }}
+                    </p>
+                </div>
+            </div>
+            <div class="book-actions">
+                <a href="{% url 'rent_book' rental.book.id %}" class="btn btn-primary">Rent Again</a>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+{% endblock %} 

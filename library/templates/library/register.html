@@ -1,0 +1,90 @@
+{% extends 'library/base.html' %}
+{% load static %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1>Create an Account</h1>
+    
+    <div class="card">
+        <div class="social-login" style="margin-top: 0; padding-top: 0; border-top: none; margin-bottom: 2rem;">
+            {% load socialaccount %}
+            <a href="{% provider_login_url 'google' %}">
+                <img src="{% static 'library/images/google-logo.svg' %}" alt="Google" width="20" height="20">
+                Sign up with Google
+            </a>
+        </div>
+        
+        <div class="divider">
+            <span>OR</span>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                <p>Please correct the errors below.</p>
+            </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}">Username</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                <div class="error-message" style="color: var(--danger-color); margin-top: 0.5rem; font-size: 0.9rem;">
+                    {{ form.username.errors }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.email.id_for_label }}">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                <div class="error-message" style="color: var(--danger-color); margin-top: 0.5rem; font-size: 0.9rem;">
+                    {{ form.email.errors }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.password1.id_for_label }}">Password</label>
+                {{ form.password1 }}
+                {% if form.password1.errors %}
+                <div class="error-message" style="color: var(--danger-color); margin-top: 0.5rem; font-size: 0.9rem;">
+                    {{ form.password1.errors }}
+                </div>
+                {% endif %}
+                <small style="display: block; margin-top: 0.5rem; color: var(--text-light);">
+                    Your password must be at least 8 characters long and contain letters and numbers.
+                </small>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}
+                <div class="error-message" style="color: var(--danger-color); margin-top: 0.5rem; font-size: 0.9rem;">
+                    {{ form.password2.errors }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group" style="display: flex; align-items: flex-start; margin-bottom: 2rem;">
+                <input type="checkbox" id="terms" name="terms" style="margin-top: 0.3rem;">
+                <label for="terms" style="display: inline; margin-left: 0.5rem; font-weight: normal;">
+                    I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                </label>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Create Account</button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Already have an account? <a href="{% url 'login' %}">Sign in</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

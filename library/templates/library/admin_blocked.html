@@ -1,0 +1,31 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Access Restricted{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 2rem auto; text-align: center; padding: 2rem;">
+    <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
+    <h1>Administrator Access Restricted</h1>
+    
+    <p style="margin: 1.5rem 0;">
+        As an administrator, you cannot access the library application. 
+        This restriction is in place to maintain separation between administrative duties and regular user activities.
+    </p>
+    
+    <div style="margin: 2rem 0;">
+        <p>You can:</p>
+        <ul style="list-style: none; padding: 0;">
+            <li style="margin: 0.5rem 0;">
+                <a href="/admin/" class="btn btn-primary">Go to Admin Interface</a>
+            </li>
+            <li style="margin: 0.5rem 0;">
+                <a href="{% url 'account_logout' %}" class="btn btn-outline">Logout</a>
+            </li>
+        </ul>
+    </div>
+    
+    <p style="color: var(--text-light); font-size: 0.9rem;">
+        To use the library application, please log in with a regular user account.
+    </p>
+</div>
+{% endblock %} 

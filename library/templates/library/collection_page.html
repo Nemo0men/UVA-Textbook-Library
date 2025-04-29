@@ -1,0 +1,240 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Collections{% endblock %}
+
+{% block content %}
+<h1>Book Collections</h1>
+
+<!-- Add search bar -->
+<div class="search-container card" style="margin-bottom: 2rem; padding: 1rem;">
+    <form method="get" class="search-form" style="display: flex; gap: 1rem;">
+        <input 
+            type="text" 
+            name="q" 
+            class="form-control" 
+            placeholder="Search collections by title, description, creator, or book..." 
+            value="{{ query|default:'' }}"
+            style="flex: 1;"
+        >
+        <button type="submit" class="btn btn-primary">Search</button>
+        {% if query %}
+            <a href="{% url 'collections' %}" class="btn btn-outline">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="dashboard-grid {% if user.is_authenticated %}authenticated-grid{% else %}guest-grid{% endif %}">
+    <!-- Create Collection Form - Only show for authenticated users -->
+    {% if user.is_authenticated and form %}
+    <div class="card">
+        <h2 class="card-title">Create New Collection</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="alert alert-danger" style="margin-bottom: 1rem;">
+                <p>Please correct the errors below:</p>
+                {% for field in form %}
+                    {% if field.errors %}
+                    <div class="error-message" style="color: var(--danger-color); margin-top: 0.5rem; font-size: 0.9rem;">
+                        {{ field.label }}: {{ field.errors|striptags }}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                {% if form.non_field_errors %}
+                <div class="error-message" style="color: var(--danger-color); margin-top: 0.5rem; font-size: 0.9rem;">
+                    {{ form.non_field_errors|striptags }}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="{{ form.title.id_for_label }}">Collection Title</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                <div class="error-message" style="color: var(--danger-color); margin-top: 0.5rem; font-size: 0.9rem;">
+                    {{ form.title.errors }}
+                </div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.description.id_for_label }}">Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                <div class="error-message" style="color: var(--danger-color); margin-top: 0.5rem; font-size: 0.9rem;">
+                    {{ form.description.errors }}
+                </div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.cover_image.id_for_label }}">Cover Image</label>
+                {{ form.cover_image }}
+                {% if form.cover_image.errors %}
+                <div class="error-message" style="color: var(--danger-color); margin-top: 0.5rem; font-size: 0.9rem;">
+                    {{ form.cover_image.errors }}
+                </div>
+                {% endif %}
+                <small style="display: block; margin-top: 0.5rem; color: var(--text-light);">Optional: Add a cover image for your collection</small>
+            </div>
+            
+            {% if user.profile.role == 'librarian' %}
+            <div class="form-group">
+                <div class="form-check">
+                    {{ form.is_private }}
+                    <label class="form-check-label" for="{{ form.is_private.id_for_label }}">
+                        Make Collection Private
+                    </label>
+                </div>
+                <small style="display: block; margin-top: 0.5rem; color: var(--text-light);">Private collections can only be accessed by selected users</small>
+            </div>
+            
+            <div class="form-group private-collection-options" style="display: none;">
+                <label for="{{ form.allowed_users.id_for_label }}">Allowed Users</label>
+                {{ form.allowed_users }}
+                {% if form.allowed_users.errors %}
+                <div class="error-message" style="color: var(--danger-color); margin-top: 0.5rem; font-size: 0.9rem;">
+                    {{ form.allowed_users.errors }}
+                </div>
+                {% endif %}
+                <small style="display: block; margin-top: 0.5rem; color: var(--text-light);">
+                    Hold Ctrl (Windows) or Command (Mac) to select multiple users.
+                    At least one user must be selected for private collections.
+                </small>
+            </div>
+            {% endif %}
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Create Collection</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Collections List -->
+    <div class="card">
+        <h2 class="card-title">Browse Collections</h2>
+        {% if not user.is_authenticated %}
+            <div class="alert alert-info" style="margin-bottom: 1rem;">
+                <p>Sign in to create your own collections and access private collections!</p>
+                <div style="margin-top: 1rem;">
+                    <a href="{% url 'login' %}" class="btn btn-primary">Sign In</a>
+                    <a href="{% url 'register' %}" class="btn btn-outline">Register</a>
+                </div>
+            </div>
+        {% endif %}
+        
+        {% if collections %}
+            {% if query %}
+                <div class="search-results-info" style="margin-bottom: 1rem;">
+                    <p>Showing results for "{{ query }}" ({{ collections|length }} found)</p>
+                </div>
+            {% endif %}
+            <ul class="book-list">
+                {% for collection in collections %}
+                <li class="book-item">
+                    {% if collection.cover_image %}
+                    <img src="{{ collection.cover_image.url }}" alt="{{ collection.title }} cover" class="book-cover">
+                    {% else %}
+                    <div class="book-cover" style="background-color: #e9ecef; display: flex; align-items: center; justify-content: center;">
+                        <span style="font-size: 3rem; color: #adb5bd;">📚</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="book-info">
+                        <h3 class="book-title">
+                            <a href="{% url 'collection_detail' collection.id %}" style="color: inherit; text-decoration: none;">
+                                {{ collection.title }}
+                                {% if collection.is_private %}
+                                <div>
+                                    <span class="badge" style="background-color: var(--primary-color); color: white; font-size: 0.8rem; padding: 0.25rem 0.5rem; border-radius: 12px; margin-left: 0rem; text-align: left;">
+                                        Private Collection
+                                    </span>
+                                </div>
+                                {% endif %}
+                            </a>
+                        </h3>
+                        <p class="book-author">Created by {{ collection.user.username }}</p>
+                        <p>{{ collection.description }}</p>
+                        
+                        {% if collection.is_private %}
+                        <div style="margin-top: 1rem;">
+                            <h4 style="font-size: 0.9rem; color: var(--text-light);">Authorized Users:</h4>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                {% for allowed_user in collection.allowed_users.all %}
+                                <span style="background-color: #e9ecef; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">
+                                    {{ allowed_user.username }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if collection.books.all %}
+                        <div class="collection-books" style="margin-top: 1rem;">
+                            <h4 style="font-size: 0.9rem; color: var(--text-light);">Books in this collection:</h4>
+                            <ul style="list-style: none; padding: 0;">
+                                {% for book in collection.books.all|slice:":3" %}
+                                <li style="font-size: 0.9rem;">{{ book.title }}</li>
+                                {% endfor %}
+                                {% if collection.books.count > 3 %}
+                                <li style="font-size: 0.9rem; color: var(--text-light);">
+                                    and {{ collection.books.count|add:"-3" }} more...
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="book-actions" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        {% if collection.user == user %}
+                            <span class="in-library">✓ Your Collection</span>
+                        {% endif %}
+                        <a href="{% url 'collection_detail' collection.id %}" class="btn btn-primary" style="width: 100%;">View Collection</a>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="empty-state">
+                <p>No collections available yet{% if user.is_authenticated %}. Create your first collection!{% endif %}</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add this JavaScript at the bottom of the template -->
+{% block extra_js %}
+{% if user.is_authenticated and form %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const privateCheckbox = document.getElementById('{{ form.is_private.id_for_label }}');
+    const allowedUsersSelect = document.getElementById('{{ form.allowed_users.id_for_label }}');
+    const privateCollectionOptions = document.querySelector('.private-collection-options');
+    
+    if (privateCheckbox && allowedUsersSelect && privateCollectionOptions) {
+        // Initially hide/show based on checkbox state
+        privateCollectionOptions.style.display = privateCheckbox.checked ? 'block' : 'none';
+        
+        // Toggle visibility of allowed users select when checkbox changes
+        privateCheckbox.addEventListener('change', function() {
+            privateCollectionOptions.style.display = this.checked ? 'block' : 'none';
+            if (!this.checked) {
+                allowedUsersSelect.selectedIndex = -1; // Clear selections when making public
+            }
+        });
+        
+        // Add form validation
+        const form = privateCheckbox.closest('form');
+        form.addEventListener('submit', function(e) {
+            if (privateCheckbox.checked && allowedUsersSelect.selectedOptions.length === 0) {
+                e.preventDefault();
+                alert('Please select at least one user for private collections.');
+                allowedUsersSelect.focus();
+            }
+        });
+    }
+});
+</script>
+{% endif %}
+{% endblock %}
+{% endblock %} 

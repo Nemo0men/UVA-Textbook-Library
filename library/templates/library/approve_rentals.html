@@ -1,0 +1,40 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Approve Rentals{% endblock %}
+
+{% block content %}
+<h1>Pending Rental Requests</h1>
+
+<div class="card">
+    {% if pending_rentals %}
+        <ul class="rental-list" style="list-style: none; padding: 0;">
+            {% for rental in pending_rentals %}
+                <li class="rental-item" style="border-bottom: 1px solid #eee; padding: 1rem; margin-bottom: 1rem;">
+                    <div class="rental-info">
+                        <h3>{{ rental.book.title }}</h3>
+                        <p>Requested by: {{ rental.user.username }}</p>
+                        <p>Rental Duration: {{ rental.book.rental_duration_days }} minutes</p>
+                        <p>Price: ${{ rental.book.rental_price }}</p>
+                    </div>
+                    <div class="rental-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <form method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="rental_id" value="{{ rental.id }}">
+                            <input type="hidden" name="action" value="approve">
+                            <button type="submit" class="btn btn-success">Approve</button>
+                        </form>
+                        <form method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="rental_id" value="{{ rental.id }}">
+                            <input type="hidden" name="action" value="reject">
+                            <button type="submit" class="btn btn-danger">Reject</button>
+                        </form>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p style="text-align: center; padding: 2rem;">No pending rental requests.</p>
+    {% endif %}
+</div>
+{% endblock %} 

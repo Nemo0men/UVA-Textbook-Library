@@ -1,0 +1,167 @@
+{% extends 'library/base.html' %}
+
+{% block title %}{{ book.title }}{% endblock %}
+
+{% block content %}
+<div class="book-detail-container" style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+    <div class="book-header" style="display: grid; grid-template-columns: 300px 1fr; gap: 2rem; margin-bottom: 2rem; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 2rem;">
+        <div class="book-cover" style="width: 100%;">
+            {% if book.cover_image %}
+                <img src="{{ book.cover_image.url }}" alt="{{ book.title }} cover" style="width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+            {% else %}
+                <div class="book-cover-placeholder" style="width: 100%; aspect-ratio: 2/3; background-color: #e9ecef; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                    <span style="font-size: 4rem; color: #adb5bd;">📖</span>
+                </div>
+            {% endif %}
+        </div>
+        <div class="book-info" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--dark-color);">{{ book.title }}</h1>
+                <p class="book-author" style="font-size: 1.2rem; color: var(--text-light); margin-bottom: 1rem;">by {{ book.author }}</p>
+                <div class="book-meta" style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                    <span class="condition-badge {{ book.condition }}" style="font-size: 1rem;">
+                        {{ book.get_condition_display }}
+                    </span>
+                    {% if not user.profile.role == 'librarian' %}
+                    <span class="rental-price" style="font-size: 1rem; background: var(--primary-color); color: white; padding: 0.25rem 0.75rem; border-radius: 20px;">${{ book.rental_price }} for {{ book.rental_duration_days }} minutes</span>
+                    {% endif %}
+                </div>
+                {% if book.description %}
+                <div class="book-description" style="margin-bottom: 1.5rem;">
+                    <h2 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Description</h2>
+                    <p style="line-height: 1.6; color: var(--text-color);">{{ book.description }}</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="book-actions" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                {% if user.profile.role == 'librarian' %}
+                    <span class="in-library" style="background: var(--success-color); color: white; padding: 0.5rem 1rem; border-radius: 25px; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 1.2rem;">✓</span> Full Access (Librarian)
+                    </span>
+                {% elif book in user_library_books %}
+                    <span class="in-library" style="background: var(--success-color); color: white; padding: 0.5rem 1rem; border-radius: 25px; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 1.2rem;">✓</span> In Your Library
+                    </span>
+                {% else %}
+                    <a href="{% url 'rent_book' book.id %}" class="btn btn-primary" style="flex: 1; min-width: 150px;">Rent Book</a>
+                {% endif %}
+                
+                {% if user.is_authenticated %}
+                <div class="dropdown" style="flex: 2;">
+                    <form method="post" action="{% url 'add_to_collection' book.id %}" style="display: flex; gap: 1rem;">
+                        {% csrf_token %}
+                        <select name="collection_id" class="form-control" style="flex: 2;" required>
+                            <option value="">Add to Collection...</option>
+                            {% for collection in user_collections %}
+                            <option value="{{ collection.id }}">{{ collection.title }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-outline" style="flex: 1;">Add</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if book.pdf_file and has_access %}
+    <div class="pdf-viewer" style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 2rem; margin-bottom: 2rem;">
+        <h2 style="margin-bottom: 1rem;">Book Preview</h2>
+        <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+            <iframe src="{{ book.pdf_file.url }}" style="position: absolute; top: 0; left: 0; width: 100%; height: 800px; border: none; border-radius: 8px;"></iframe>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if ratings %}
+    <div class="book-ratings" style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 2rem;">
+        <h2 style="margin-bottom: 1.5rem;">Ratings & Reviews</h2>
+        <div style="display: grid; gap: 1.5rem;">
+            {% for rating in ratings %}
+            <div class="rating-item" style="border-bottom: 1px solid #eee; padding-bottom: 1.5rem;">
+                <div class="rating-header" style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span class="rating-user" style="font-weight: 500;">{{ rating.user.username }}</span>
+                    <span class="rating-date" style="color: var(--text-light);">{{ rating.created_at|date:"F j, Y" }}</span>
+                </div>
+                <div class="rating-stars" style="color: #ffd700; font-size: 1.2rem; margin-bottom: 0.5rem;">
+                    {% for i in "12345"|make_list %}
+                        {% if forloop.counter <= rating.rating %}
+                            ★
+                        {% else %}
+                            ☆
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% if rating.comment %}
+                <p class="rating-comment" style="line-height: 1.6; color: var(--text-color);">{{ rating.comment }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if user.is_authenticated and not user_rating %}
+    <div class="rating-form" style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 2rem; margin-top: 2rem;">
+        <h2 style="margin-bottom: 1rem;">Write a Review</h2>
+        <p style="color: var(--text-light); margin-bottom: 1.5rem;">Share your thoughts about this book with other readers.</p>
+        
+        <form method="post" style="max-width: 600px;">
+            {% csrf_token %}
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="{{ rating_form.rating.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Rating</label>
+                {{ rating_form.rating }}
+                {% if rating_form.rating.errors %}
+                <div class="error-message" style="color: var(--danger-color); margin-top: 0.5rem; font-size: 0.9rem;">
+                    {{ rating_form.rating.errors }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="{{ rating_form.comment.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Your Review</label>
+                {{ rating_form.comment }}
+                {% if rating_form.comment.errors %}
+                <div class="error-message" style="color: var(--danger-color); margin-top: 0.5rem; font-size: 0.9rem;">
+                    {{ rating_form.comment.errors }}
+                </div>
+                {% endif %}
+                <small style="display: block; margin-top: 0.5rem; color: var(--text-light);">Write your honest opinion about the book. What did you like or dislike?</small>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem;">Submit Review</button>
+        </form>
+    </div>
+    {% elif user.is_authenticated and user_rating %}
+    <div class="rating-form" style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 2rem; margin-top: 2rem;">
+        <h2 style="margin-bottom: 1rem;">Your Review</h2>
+        <p style="color: var(--text-light); margin-bottom: 1.5rem;">You've already reviewed this book. You can update your review using the form below.</p>
+        
+        <form method="post" style="max-width: 600px;">
+            {% csrf_token %}
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="{{ rating_form.rating.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Update Rating</label>
+                {{ rating_form.rating }}
+                {% if rating_form.rating.errors %}
+                <div class="error-message" style="color: var(--danger-color); margin-top: 0.5rem; font-size: 0.9rem;">
+                    {{ rating_form.rating.errors }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="{{ rating_form.comment.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Update Your Review</label>
+                {{ rating_form.comment }}
+                {% if rating_form.comment.errors %}
+                <div class="error-message" style="color: var(--danger-color); margin-top: 0.5rem; font-size: 0.9rem;">
+                    {{ rating_form.comment.errors }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem;">Update Review</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

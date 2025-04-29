@@ -1,0 +1,58 @@
+{% extends 'library/base.html' %}
+
+{% block title %}UVA Textbook Library{% endblock %}
+
+{% block content %}
+
+<div class="hero">
+
+    <h1>UVA Textbook Library</h1>
+    <p>A student-friendly platform designed for UVA students to access, manage, and share textbooks. Save money and time with our easy-to-use library system.</p>
+
+    {% if not user.is_authenticated %}
+    <div class="cta-buttons">
+        <a href="{% url 'login' %}" class="btn btn-primary">Sign In</a>
+        <a href="{% url 'register' %}" class="btn btn-primary">Create Account</a>
+    </div>
+    {% else %}
+    <div class="cta-buttons">
+        <a href="{% url 'explore_library' %}" class="btn btn-primary">Explore Books</a>
+        <a href="{% url 'my_library' %}" class="btn btn-primary">My Library</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="features">
+    <div class="feature-card">
+        <div class="feature-icon">📚</div>
+        <h3 class="feature-title">Extensive Collection</h3>
+        <p>Access a wide range of textbooks for all UVA courses, from humanities to sciences.</p>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-icon">💰</div>
+        <h3 class="feature-title">Save Money</h3>
+        <p>Avoid expensive textbook purchases by using our library system.</p>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-icon">🔄</div>
+        <h3 class="feature-title">Easy Management</h3>
+        <p>Keep track of your books with a personalized library dashboard.</p>
+    </div>
+</div>
+
+<div class="card">
+    <h2 class="card-title">How It Works</h2>
+    <ol>
+        <li>Create an account or sign in with your Google account</li>
+        <li>Browse our collection of textbooks</li>
+        <li>Add books to your personal library</li>
+        <li>Manage your collection from your dashboard</li>
+    </ol>
+
+    <div class="cta-buttons">
+        <a href="{% url 'explore_library' %}" class="btn btn-primary">Start Exploring</a>
+    </div>
+</div>
+{% endblock %}

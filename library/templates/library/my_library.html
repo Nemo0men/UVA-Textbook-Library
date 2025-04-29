@@ -1,0 +1,109 @@
+{% extends 'library/base.html' %}
+{% load custom_filters %}
+
+{% block title %}My Library{% endblock %}
+
+{% block content %}
+<h1>My Library</h1>
+
+<!-- Add hidden messages that will be converted to toasts -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="message" data-type="{{ message.tags }}" style="display: none;">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="card">
+    {% if books %}
+    <ul class="book-list">
+        {% for book in books %}
+        <li class="book-item">
+            {% if book.cover_image %}
+            <img src="{{ book.cover_image.url }}" alt="{{ book.title }} cover" class="book-cover">
+            {% else %}
+            <div class="book-cover" style="background-color: #e9ecef; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 3rem; color: #adb5bd;">📖</span>
+            </div>
+            {% endif %}
+            
+            <div class="book-info">
+                <span class="book-title">{{ book.title }}</span>
+                <span class="book-author">by {{ book.author }}</span>
+                {% if rental_times|get_item:book.id %}
+                <div class="rental-status">
+                    <span class="{% if rental_times|get_item:book.id < 5 %}rental-warning{% else %}rental-normal{% endif %}">
+                        {{ rental_times|get_item:book.id }} minutes remaining
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="book-actions">
+                <a href="{% url 'book_detail' book.id %}" class="btn btn-primary" style="width: 80%; margin-bottom: 0.5rem; margin-left: 0%; margin-right: 0%; text-align: center;">View Book</a>
+                {% if book.pdf_file %}
+                <a href="{% url 'view_pdf' book.id %}" class="btn btn-outline" style="width: 100%; margin-bottom: 0.5rem;">Download PDF</a>
+                {% endif %}
+                <form method="post" style="width: 100%;">
+                    {% csrf_token %}
+                    <input type="hidden" name="book_id" value="{{ book.id }}">
+                    <button type="submit" class="btn btn-danger" style="width: 100%; margin-left: 0.2rem; margin-right: 0.8rem; margin-bottom: 0.5rem; text-align: center;" 
+                            onclick="return confirm('Are you sure you want to remove this book from your library? This will cancel your rental.')">
+                        Remove from Library
+                    </button>
+                </form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty-state">
+        <p>No books in your library yet.</p>
+        <a href="{% url 'explore_library' %}" class="btn btn-primary">Explore Books</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all hidden message elements
+    const messages = document.querySelectorAll('.message');
+    
+    messages.forEach((messageElement, index) => {
+        const text = messageElement.textContent.trim();
+        const type = messageElement.dataset.type || 'info';
+        
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `toast-message ${type}`;
+        toast.textContent = text;
+        
+        // Add to container
+        const container = document.querySelector('.toast-container');
+        container.appendChild(toast);
+        
+        // Force reflow
+        toast.offsetHeight;
+        
+        // Show with delay based on index
+        setTimeout(() => {
+            toast.classList.add('show');
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }, index * 200);
+        
+        // Remove the original message element
+        messageElement.remove();
+    });
+});
+</script>
+{% endblock %} 

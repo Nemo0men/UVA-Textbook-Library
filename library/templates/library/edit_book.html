@@ -1,0 +1,98 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Edit Book{% endblock %}
+
+{% block content %}
+<h1>Edit Book</h1>
+
+<div class="card">
+    <h2 class="card-title">Edit "{{ book.title }}"</h2>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            Please correct the errors below.
+        </div>
+        {% endif %}
+        
+        <div class="form-group">
+            <label for="{{ form.title.id_for_label }}">Title</label>
+            {{ form.title }}
+            {% if form.title.errors %}
+            <div class="error-message">{{ form.title.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.author.id_for_label }}">Author</label>
+            {{ form.author }}
+            {% if form.author.errors %}
+            <div class="error-message">{{ form.author.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.rental_price.id_for_label }}">Rental Price ($)</label>
+            {{ form.rental_price }}
+            {% if form.rental_price.errors %}
+            <div class="error-message">{{ form.rental_price.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.rental_duration_days.id_for_label }}">Rental Duration (minutes)</label>
+            {{ form.rental_duration_days }}
+            {% if form.rental_duration_days.errors %}
+            <div class="error-message">{{ form.rental_duration_days.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.condition.id_for_label }}">Book Condition</label>
+            {{ form.condition }}
+            {% if form.condition.errors %}
+            <div class="error-message">{{ form.condition.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.cover_image.id_for_label }}">Cover Image</label>
+            {{ form.cover_image }}
+            {% if book.cover_image %}
+            <small style="display: block; margin-top: 0.5rem; color: var(--text-light);">Current: {{ book.cover_image.name }}</small>
+            {% endif %}
+            {% if form.cover_image.errors %}
+            <div class="error-message">{{ form.cover_image.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.pdf_file.id_for_label }}">PDF File</label>
+            {{ form.pdf_file }}
+            {% if book.pdf_file %}
+            <small style="display: block; margin-top: 0.5rem; color: var(--text-light);">Current: {{ book.pdf_file.name }}</small>
+            {% endif %}
+            {% if form.pdf_file.errors %}
+            <div class="error-message">{{ form.pdf_file.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="button-group">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="{% url 'librarian_dashboard' %}" class="btn btn-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %} 

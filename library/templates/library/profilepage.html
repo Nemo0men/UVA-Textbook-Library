@@ -1,0 +1,76 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<h1>Your Profile</h1>
+
+<div class="card">
+    <div class="profile-container" style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+        <div class="profile-sidebar">
+            <div class="profile-picture-container" style="text-align: center;">
+                {% if profile.profile_picture %}
+                <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" class="profile-picture" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem;">
+                {% else %}
+                <div style="width: 150px; height: 150px; border-radius: 50%; background-color: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center; font-size: 3rem; margin: 0 auto 1rem;">
+                    {{ user.username|first|upper }}
+                </div>
+                {% endif %}
+                <h2 style="margin: 0.5rem 0;">{{ user.username }}</h2>
+                
+                {% if profile.role == 'librarian' %}
+                <span class="role-badge" style="display: inline-block; padding: 0.25rem 0.75rem; background-color: var(--secondary-color); color: var(--dark-color); border-radius: 20px; font-size: 0.9rem; font-weight: 500;">
+                    {{ profile.get_role_display }}
+                </span>
+                {% else %}
+                <span class="role-badge" style="display: inline-block; padding: 0.25rem 0.75rem; background-color: var(--primary-color); color: white; border-radius: 20px; font-size: 0.9rem; font-weight: 500;">
+                    {{ profile.get_role_display }}
+                </span>
+                {% endif %}
+            </div>
+            
+            <div class="profile-details" style="margin-top: 2rem;">
+                <div class="detail-item" style="margin-bottom: 1rem;">
+                    <span style="font-weight: 500; color: var(--text-light);">Email</span>
+                    <p style="margin: 0.25rem 0 0;">{{ user.email }}</p>
+                </div>
+                
+                <div class="detail-item" style="margin-bottom: 1rem;">
+                    <span style="font-weight: 500; color: var(--text-light);">Member Since</span>
+                    <p style="margin: 0.25rem 0 0;">{{ user.date_joined|date:"F j, Y" }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="profile-content">
+            <h3 style="margin-top: 0; margin-bottom: 1.5rem;">Update Profile</h3>
+            
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="{{ form.profile_picture.id_for_label }}">Profile Picture</label>
+                    {{ form.profile_picture }}
+                    {% if form.profile_picture.errors %}
+                    <div class="error-message" style="color: var(--danger-color); margin-top: 0.5rem; font-size: 0.9rem;">
+                        {{ form.profile_picture.errors }}
+                    </div>
+                    {% endif %}
+                    <small style="display: block; margin-top: 0.5rem; color: var(--text-light);">Recommended: Square image, at least 300x300px</small>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Update Profile</button>
+            </form>
+            
+            <div style="margin-top: 3rem;">
+                <h3>Account Settings</h3>
+                <p>Manage your account settings and preferences.</p>
+                
+                <div class="settings-links" style="margin-top: 1.5rem;">
+                    <a href="{% url 'change_password' %}" class="btn btn-primary" style="margin-right: 1rem;">Change Password</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

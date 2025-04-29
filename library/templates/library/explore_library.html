@@ -1,0 +1,116 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Explore Library{% endblock %}
+
+{% block content %}
+<h1>Explore Our Collection</h1>
+
+<div class="card">
+    <p>Browse through our collection of textbooks and add them to your personal library.</p>
+    <div class="container">
+        <form method="get" class="role="search">
+            <input
+                type="text" 
+                style="display: inline-block; width: calc(100% - 120px); margin-right: 10px; margin-bottom: 10px;"
+                name="q" 
+                class="form-control me-2" 
+                placeholder="Search by title or author..." 
+                value="{{ query|default:'' }}"
+            >
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <strong style="margin-right: 10px;">Condition |</strong>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    {% for value, label in conditions %}
+                        <div class="form-check" style="display: flex; align-items: center;">
+                            <input class="form-check-input" type="checkbox" name="conditions" value="{{ value }}"
+                                {% if value in selected_conditions %}checked{% endif %}>
+                            <label class="form-check-label" style="margin-left: 5px;">{{ label }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <strong style="margin-right: 10px;">Price Range |</strong>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    {% for value, label in price_ranges %}
+                        <div class="form-check" style="display: flex; align-items: center;">
+                            <input class="form-check-input" type="checkbox" name="price_ranges" value="{{ value }}"
+                                {% if value in selected_price_ranges %}checked{% endif %}>
+                            <label class="form-check-label" style="margin-left: 5px;">{{ label }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <p> Note: make sure to clear your search and filters before pressing 'submit' to see all books again!</p>
+            <button class="btn btn-primary" type="submit">Search</button>
+        </form>
+    </div>
+     {% if books %}
+    <ul class="book-list">
+        {% for book in books %}
+        <li class="book-item">
+            {% if book.cover_image %}
+            <img src="{{ book.cover_image.url }}" alt="{{ book.title }} cover" class="book-cover">
+            {% else %}
+            <div class="book-cover" style="background-color: #e9ecef; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 3rem; color: #adb5bd;">📖</span>
+            </div>
+            {% endif %}
+            
+            <div class="book-info">
+                <span class="book-title">
+                    {{ book.title }}
+                </span>
+                <span class="book-author">by {{ book.author }}</span>
+                <div class="book-details" style="margin-top: 0.5rem; font-size: 0.9rem;">
+                    <span class="condition-badge {{ book.condition }}">
+                        {{ book.get_condition_display }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="book-actions" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <a href="{% url 'book_detail' book.id %}" class="btn btn-outline" style="width: 100%;">View Book</a>
+                {% if user.profile.role == 'librarian' %}
+                    <span class="in-library" style="background: var(--success-color); color: white; padding: 0.5rem 1rem; border-radius: 25px; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 1.2rem;">✓</span> Full Access (Librarian)
+                    </span>
+                {% elif book in user_library_books %}
+                    <span class="in-library">✓ In Your Library</span>
+                {% else %}
+                    <p class="rental-price" style="margin: 0;">${{ book.rental_price }} for {{ book.rental_duration_days }} minutes</p>
+                    <a href="{% url 'rent_book' book.id %}" class="btn btn-primary" style="width: 100%;">Rent Book</a>
+                {% endif %}
+                
+                {% if user.is_authenticated %}
+                <div class="dropdown">
+                    <form method="post" action="{% url 'add_to_collection' book.id %}">
+                        {% csrf_token %}
+                        <select name="collection_id" class="form-control" style="margin-bottom: 0.5rem;" required>
+                            <option value="">Add to Collection...</option>
+                            {% for collection in user_collections %}
+                            <option value="{{ collection.id }}">{{ collection.title }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-outline" style="width: 100%;" 
+                                onclick="return this.form.collection_id.value !== ''">
+                            Add to Collection
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty-state">
+        <p>No books available in the library yet.</p>
+        {% if user.profile.role == 'librarian' %}
+        <a href="{% url 'librarian_dashboard' %}" class="btn btn-primary">Add Books</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 
